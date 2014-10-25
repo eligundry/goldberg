@@ -10,13 +10,9 @@ tasks = {
         "name": "Lights",
         "description": "Control the lights"
     },
-    "water": {
-        "name": "Water",
-        "description": "Water your plant"
-    },
-    "cat": {
-        "name": "Cat",
-        "description": "Feed your cat"
+    "plant": {
+        "name": "Plant",
+        "description": "Tend to your plant"
     }
 }
 
@@ -33,25 +29,21 @@ def lights_actions():
     Return a list of actions that you can do with lights
     """
     actions = {
-        "rgb": {
+        "rgba": {
             "name": "Set Color",
-            "description": "Make the lights an RGB color"
-        },
-        "strobe": {
-            "name": "Strobe",
-            "description": "Strobe the lights with optional frequency"
+            "description": "Make the lights an RGBA color"
         }
     }
 
     return actions, status.HTTP_200_OK
 
-@app.route("/lights/rgb", methods=['GET', 'POST'])
-def lights_set_rgb():
+@app.route("/lights/rgba", methods=['GET', 'POST'])
+def lights_set_rgba():
     """
     Defines the color of the lights. The colors are random by default.
 
     GET: Returns the current colors of the light
-    POST: Sets the colors of the lights
+    POST: Sets the colors of the lights. Keys are 'r', 'g', 'b', 'a' and must be ints
     """
     if request.method == "GET":
         response = {
@@ -62,11 +54,8 @@ def lights_set_rgb():
         return response, status.HTTP_200_OK
 
     elif request.method == "POST":
-        red = request.data['r']
-        green = request.data['g']
-        blue = request.data['b']
-
-        pi.lights.set_color(red, green, blue)
+        pi.lights.set_color(r=request.data['r'], g=request.data['g'],
+                            b=request.data['b'], a=request.data['a'])
 
         response = {
             "message": "The lights colors were set",
@@ -76,40 +65,28 @@ def lights_set_rgb():
         return response, status.HTTP_201_CREATED
 
 
-@app.route("/lights/strobe", methods=["GET", "POST", "DELETE"])
-def lights_strobe():
-    """
-    Makes the lights strobe with an optional frequency
-
-    GET: Is light strobbing?
-    POST: Starts lights strobing
-    DELETE: Stops lights strobing
-    """
-    if request.method == "GET":
-        if pi.lights.is_strobbing:
-            return { "strobbing": 1 }, status.HTTP_200_OK
-        else:
-            return { "strobbing": 0 }, status.HTTP_200_OK
-
-    elif request.method == "POST":
-        pi.lights.start_strobe()
-
-        response = {
-            "message": "Lights started strobbing"
+@app.route("/plant", methods=["GET"])
+def plant_actions():
+    actions = {
+        "water": {
+            "name": "Water Plant",
+            "description": "Spray water on plant"
+        },
+        "moisture": {
+            "name": "Moisture of Soil",
+            "description": "See how much moisture is in the soil"
+        },
+        "status": {
+            "name": "Plant Status",
+            "description": "How is planty doing?"
         }
+    }
 
-        return response, status.HTTP_201_CREATED
+    return actions, status.HTTP_200_OK
 
-    elif request.method == "DELETE":
-        pi.lights.stop_strobe()
-
-        response = {
-            "message": "Successfully stopped the lights from strobing"
-        }
-
-        return response, status.HTTP_204_NO_CONTENT
-
-    return
+@app.route("/plant/status", methods=["GET"])
+def plant_status():
+    return { "status": pi.plant.status() }, status.HTTP_200_OK
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

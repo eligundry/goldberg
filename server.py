@@ -88,5 +88,15 @@ def plant_actions():
 def plant_status():
     return { "status": pi.plant.status() }, status.HTTP_200_OK
 
+@app.route("/plant/water", methods=['PUT'])
+def plant_water():
+    """
+    Waters the plant with a PUT request
+    """
+    if pi.plant.water():
+        return { 'message': 'The plant was watered' }, status.HTTP_201_CREATED
+    else:
+        return { 'message': "The plant wasn't watered" }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

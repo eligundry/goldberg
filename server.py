@@ -32,6 +32,14 @@ def lights_actions():
         "rgba": {
             "name": "Set Color",
             "description": "Make the lights an RGBA color"
+        },
+        "on": {
+            "name": "Lights On",
+            "description": "Moar lights"
+        },
+        "off": {
+            "name": "Lights Off",
+            "description": "No more lights"
         }
     }
 

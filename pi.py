@@ -1,23 +1,47 @@
+import RPi.GPIO as GPIO
 import random
 import time
+
+# Setup GPIO
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(26, GPIO.OUT)
+GPIO.setup(24, GPIO.OUT)
+GPIO.setup(22, GPIO.OUT)
+
+RED = GPIO.PWM(26, 100)
+GREEN = GPIO.PWM(24, 100)
+BLUE = GPIO.PWM(22, 100)
+
+RED.start(0)
+GREEN.start(0)
+BLUE.start(0)
+
+print 1
 
 class Lights():
     red = None
     blue = None
     green = None
-    alpha = 100
+    alpha = 1.0
+
+    print 2
 
     def __init__(self):
         self.random_color()
+        print 3
 
     def random_color(self):
         """
         Sets the RGB color of the lights to a random color
         """
         self.set_color(r=random.randint(0, 255), g=random.randint(0, 255),
-                       b=random.randint(0, 255), a=100)
+                       b=random.randint(0, 255), a=1.0)
+
+        print 4
 
     def get_color(self):
+        print 5
+
         return {
             'r': self.red,
             'g': self.green,
@@ -26,14 +50,35 @@ class Lights():
         }
 
     def set_color(self, r, g, b, a):
+        print 6
+
         self.red = r
         self.green = g
         self.blue = b
         self.alpha = a
 
-        # Put logic for changing light color here
+        print 7
+
+        temp = {
+            'red': int(((self.red / 255.0) * 100) * self.alpha),
+            'green': int(((self.green / 255.0) * 100) * self.alpha),
+            'blue': int(((self.blue / 255.0) * 100) * self.alpha)
+        }
+
+        RED.ChangeDutyCycle(temp['red'])
+        print 8
+        GREEN.ChangeDutyCycle(temp['green'])
+        print 9
+        BLUE.ChangeDutyCycle(temp['blue'])
+        print 10
 
         return True
+
+    def lights_on(self):
+        self.set_color(a=1.0)
+
+    def lights_off(self):
+        self.set_color(0.0)
 
     def is_on(self):
         return self.alpha is not 0

@@ -5,23 +5,23 @@ from pi import Pi
 app = FlaskAPI(__name__)
 pi = Pi()
 
-tasks = {
-    "light": {
-        "name": "Lights",
-        "description": "Control the lights"
-    },
-    "plant": {
-        "name": "Plant",
-        "description": "Tend to your plant"
-    }
-}
-
 @app.route("/", methods=['GET'])
 def index():
     """
     Returns a list of actions to the Pebble
     """
-    return tasks, status.HTTP_200_OK
+    tasks = {
+        "light": {
+            "name": "Lights",
+            "description": "Control the lights"
+        },
+        "plant": {
+            "name": "Plant",
+            "description": "Tend to your plant"
+        }
+    }
+
+    return sorted(tasks), status.HTTP_200_OK
 
 @app.route("/light", methods=['GET'])
 def light_actions():
@@ -44,7 +44,7 @@ def light_actions():
         }
     }
 
-    return actions, status.HTTP_200_OK
+    return sorted(actions), status.HTTP_200_OK
 
 @app.route("/light/<int:light_num>/", methods=['GET', 'POST'])
 def light_set_rgba(light_num):
@@ -92,7 +92,7 @@ def plant_actions():
         }
     }
 
-    return actions, status.HTTP_200_OK
+    return sorted(actions), status.HTTP_200_OK
 
 @app.route("/plant/status", methods=["GET"])
 def plant_status():

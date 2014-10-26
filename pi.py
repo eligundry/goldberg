@@ -119,8 +119,8 @@ GPIO.setup(10, GPIO.OUT)
 
 class Plant:
     def __init__(self):
-        alive = True
-        moisture = None
+        self.alive = True
+        self.moisture = None
         self.get_moisture()
 
     def status(self):
@@ -129,11 +129,13 @@ class Plant:
             'moisture': self.get_moisture()
         }
 
-    def water(self):
+    def water(self, duration=3):
         """
-        Waters the plant with the hose and shit
+        Waters the plant with the hose with optional time in seconds
         """
-        reading = GPIO.input(16)
+        GPIO.output(10, 1)
+        time.sleep(duration)
+        GPIO.output(10, 0)
 
         return True
 
@@ -141,10 +143,8 @@ class Plant:
         """
         Gets the moisture of the soil from the soil hygrometer sensor
         """
-        # Dummy value for moisture cause I don't have time to lookup the pinout
-        # Logic for moisture module goes here
-        self.moisture = random.randint(0, 255)
-        return self.moisture
+        self.moisture = GPIO.input(16)
+        return self.moisture == 1
 
 class Pi:
     def __init__(self):

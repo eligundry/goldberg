@@ -6,7 +6,7 @@ app = FlaskAPI(__name__)
 pi = Pi()
 
 tasks = {
-    "lights": {
+    "light": {
         "name": "Lights",
         "description": "Control the lights"
     },
@@ -23,51 +23,53 @@ def index():
     """
     return tasks, status.HTTP_200_OK
 
-@app.route("/lights", methods=['GET'])
-def lights_actions():
+@app.route("/light", methods=['GET'])
+def light_actions():
     """
-    Return a list of actions that you can do with lights
+    Return a list of actions that you can do with lights. Put an int after it
+    to control a specific light
     """
     actions = {
-        "rgba": {
-            "name": "Set Color",
-            "description": "Make the lights an RGBA color"
+        "0": {
+            "name": "Light Strand 1",
+            "description": "Control this light strand"
         },
-        "on": {
-            "name": "Lights On",
-            "description": "Moar lights"
+        "1": {
+            "name": "Light Strand 2",
+            "description": "Control this light strand"
         },
-        "off": {
-            "name": "Lights Off",
-            "description": "No more lights"
+        "toggle": {
+            "name": "Toggle Lights",
+            "description": "Turn lights on/off"
         }
     }
 
     return actions, status.HTTP_200_OK
 
-@app.route("/lights/rgba", methods=['GET', 'POST'])
-def lights_set_rgba():
+@app.route("/light/<int:light_num>/", methods=['GET', 'POST'])
+def light_set_rgba(light_num):
     """
     Defines the color of the lights. The colors are random by default.
 
     GET: Returns the current colors of the light
-    POST: Sets the colors of the lights. Keys are 'r', 'g', 'b', 'a' and must be ints
+    POST: Sets the colors of the lights.
+    VARIABLES: 'r', 'g', 'b' ints 0-255, 'a' float 0.0-1.0
     """
     if request.method == "GET":
         response = {
             "message": "The lights colors are",
-            "colors": pi.lights.get_color()
+            "colors": pi.light[light_num].get_color()
         }
 
         return response, status.HTTP_200_OK
 
     elif request.method == "POST":
-        pi.lights.set_color(r=request.data['r'], g=request.data['g'],
+        pi.light[light_num].set_color(r=request.data['r'], g=request.data['g'],
                             b=request.data['b'], a=request.data['a'])
 
         response = {
             "message": "The lights colors were set",
-            "colors": pi.lights.get_color()
+            "colors": pi.light[light_num].get_color()
         }
 
         return response, status.HTTP_201_CREATED
@@ -107,4 +109,4 @@ def plant_water():
         return { 'message': "The plant wasn't watered" }, status.HTTP_500_INTERNAL_SERVER_ERROR
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(host='0.0.0.0')

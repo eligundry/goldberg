@@ -7,23 +7,46 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(26, GPIO.OUT)
 GPIO.setup(24, GPIO.OUT)
 GPIO.setup(22, GPIO.OUT)
+GPIO.setup(23, GPIO.OUT)
+GPIO.setup(21, GPIO.OUT)
+GPIO.setup(19, GPIO.OUT)
 
-RED = GPIO.PWM(26, 100)
-GREEN = GPIO.PWM(24, 100)
-BLUE = GPIO.PWM(22, 100)
+RED, GREEN, BLUE = {}, {}, {}
 
-RED.start(0)
-GREEN.start(0)
-BLUE.start(0)
+RED[0]   = GPIO.PWM(26, 100)
+RED[1]   = GPIO.PWM(23, 100)
+GREEN[0] = GPIO.PWM(24, 100)
+GREEN[1] = GPIO.PWM(21, 100)
+BLUE[0]  = GPIO.PWM(22, 100)
+BLUE[1]  = GPIO.PWM(19, 100)
 
-class Lights():
-    red = None
-    blue = None
-    green = None
-    alpha = 1.0
+RED[0].start(0)
+RED[1].start(0)
+GREEN[0].start(0)
+GREEN[1].start(0)
+BLUE[0].start(0)
+BLUE[1].start(0)
 
-    def __init__(self):
+class Lights:
+    def __init__(self, strand_num):
+        self.red = None
+        self.blue = None
+        self.green = None
+        self.alpha = 1.0
+        self.strand_num = strand_num
         self.random_color()
+
+    def __exit__(self, type, value, traceback):
+        RED[self.strand_num].stop()
+        GREEN[self.strand_num].stop()
+        BLUE[self.strand_num].stop()
+
+        GPIO.output(26, 0)
+        GPIO.output(24, 0)
+        GPIO.output(22, 0)
+        GPIO.output(23, 0)
+        GPIO.output(21, 0)
+        GPIO.output(19, 0)
 
     def random_color(self):
         """
@@ -41,6 +64,9 @@ class Lights():
         }
 
     def set_color(self, r, g, b, a):
+        """
+        Changes color and opacity of the lights
+        """
         self.red = r
         self.green = g
         self.blue = b
@@ -52,26 +78,49 @@ class Lights():
             'blue': int(((self.blue / 255.0) * 100) * self.alpha)
         }
 
-        RED.ChangeDutyCycle(temp['red'])
-        GREEN.ChangeDutyCycle(temp['green'])
-        BLUE.ChangeDutyCycle(temp['blue'])
+        RED[self.strand_num].ChangeDutyCycle(temp['red'])
+        GREEN[self.strand_num].ChangeDutyCycle(temp['green'])
+        BLUE[self.strand_num].ChangeDutyCycle(temp['blue'])
 
-        return True
+    def fade_in(self, r, g, b, a, t):
+        r = int(((r/255.0)*100)*a)
+        g = int(((g/255.0)*100)*a)
+        b = int(((b/255.0)*100)*a)
+        a = int(a*100)
+        for i in range(0, a, 2):
+            if i < r:
+                    RED[self.strand_num].ChangeDutyCycle(i)
+            if i < g:
+                    GREEN[self.strand_num].ChangeDutyCycle(i)
+            if i < b:
+                    BLUE[self.strand_num].ChangeDutyCycle(i)
 
-    def lights_on(self):
-        self.set_color(a=1.0)
+            time.sleep(t / 50.0)
 
-    def lights_off(self):
-        self.set_color(0.0)
+
+    def fade_out(self, r, g, b, a, t):
+        r = int(((r/255.0)*100)*a)
+        g = int(((g/255.0)*100)*a)
+        b = int(((b/255.0)*100)*a)
+        for i in range(0, a, -2):
+            RED[self.strand_num].ChangeDutyCycle(i)
+            GREEN[self.strand_num].ChangeDutyCycle(i)
+            BLUE[self.strand_num].ChangeDutyCycle(i)
+
+            time.sleep(t / 50.0)
+
 
     def is_on(self):
         return self.alpha is not 0
 
-class Plant():
-    alive = True
-    moisture = None
+# Plant GPIO
+GPIO.setup(16, GPIO.IN)
+GPIO.setup(10, GPIO.OUT)
 
+class Plant:
     def __init__(self):
+        alive = True
+        moisture = None
         self.get_moisture()
 
     def status(self):
@@ -84,6 +133,8 @@ class Plant():
         """
         Waters the plant with the hose and shit
         """
+        reading = GPIO.input(16)
+
         return True
 
     def get_moisture(self):
@@ -95,9 +146,7 @@ class Plant():
         self.moisture = random.randint(0, 255)
         return self.moisture
 
-class Pi():
-    lights = Lights()
-    plant = Plant()
-
+class Pi:
     def __init__(self):
-        return
+        self.light = [ Lights(0), Lights(1) ]
+        self.plant = Plant()

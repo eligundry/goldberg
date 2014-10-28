@@ -18,12 +18,16 @@ def index():
         "plant": {
             "name": "Plant",
             "description": "Tend to your plant"
+        },
+        "snack": {
+            "name": "Snacks",
+            "description": "Dispense candy"
         }
     }
 
-    return sorted(tasks), status.HTTP_200_OK
+    return tasks, status.HTTP_200_OK
 
-@app.route("/light", methods=['GET'])
+@app.route('/light', methods=['GET'])
 def light_actions():
     """
     Return a list of actions that you can do with lights. Put an int after it
@@ -37,14 +41,11 @@ def light_actions():
         "1": {
             "name": "Light Strand 2",
             "description": "Control this light strand"
-        },
-        "toggle": {
-            "name": "Toggle Lights",
-            "description": "Turn lights on/off"
         }
     }
 
-    return sorted(actions), status.HTTP_200_OK
+    return actions, status.HTTP_200_OK
+
 
 @app.route("/light/<int:light_num>/", methods=['GET', 'POST'])
 def light_set_rgba(light_num):
@@ -84,7 +85,7 @@ def plant_actions():
         },
         "moisture": {
             "name": "Moisture of Soil",
-            "description": "See how much moisture is in the soil"
+            "description": "Moist soil checker"
         },
         "status": {
             "name": "Plant Status",
@@ -92,21 +93,28 @@ def plant_actions():
         }
     }
 
-    return sorted(actions), status.HTTP_200_OK
+    return actions, status.HTTP_200_OK
 
 @app.route("/plant/status", methods=["GET"])
 def plant_status():
     return { "status": pi.plant.status() }, status.HTTP_200_OK
 
-@app.route("/plant/water", methods=['PUT'])
+@app.route("/plant/water", methods=['GET'])
 def plant_water():
     """
-    Waters the plant with a PUT request
+    Waters the plant with a GET request
     """
     if pi.plant.water():
         return { 'message': 'The plant was watered' }, status.HTTP_201_CREATED
     else:
         return { 'message': "The plant wasn't watered" }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@app.route("/snack", methods=['GET'])
+def snackbox():
+    pi.snack_box.disperse()
+    response = { "message": "Enjoy your candy!" }
+    return response,  status.HTTP_200_OK
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

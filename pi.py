@@ -29,12 +29,11 @@ BLUE[1].start(0)
 
 class Lights:
     def __init__(self, strand_num):
-        self.red = None
-        self.blue = None
-        self.green = None
-        self.alpha = 1.0
+        self.red = 0
+        self.blue = 0
+        self.green = 0
+        self.alpha = 0.0
         self.strand_num = strand_num
-        self.random_color()
 
     def __exit__(self, type, value, traceback):
         RED[self.strand_num].stop()
@@ -102,16 +101,24 @@ class Lights:
         r = int(((r/255.0)*100)*a)
         g = int(((g/255.0)*100)*a)
         b = int(((b/255.0)*100)*a)
-        for i in range(0, a, -2):
-            RED[self.strand_num].ChangeDutyCycle(i)
-            GREEN[self.strand_num].ChangeDutyCycle(i)
-            BLUE[self.strand_num].ChangeDutyCycle(i)
+        a = int(a*100)
+        i = 0
+        while i < 100:
+        # for i in range(100, a, -2):
+            RED[self.strand_num].ChangeDutyCycle(100 - i)
+            GREEN[self.strand_num].ChangeDutyCycle(100 - i)
+            BLUE[self.strand_num].ChangeDutyCycle(100 - i)
+
+            print { self.strand_num, r, g, b, i }
+            i += 1
 
             time.sleep(t / 50.0)
 
+    def toggle_power(self):
+        pass
 
-    def is_on(self):
-        return self.alpha is not 0
+    def light_show(self):
+        pass
 
 # Plant GPIO
 GPIO.setup(16, GPIO.IN)
@@ -146,7 +153,23 @@ class Plant:
         self.moisture = GPIO.input(16)
         return self.moisture == 1
 
+# SnackBox GPIO
+GPIO.setup(3, GPIO.OUT)
+
+class SnackBox:
+    def __init__(self):
+        self.candy = True
+
+    def disperse(self):
+        """
+        Drops a candy from it's flipper for all the children to enjoy
+        """
+        GPIO.output(3, 1)
+        time.sleep(1)
+        GPIO.output(3, 0)
+
 class Pi:
     def __init__(self):
         self.light = [ Lights(0), Lights(1) ]
         self.plant = Plant()
+        self.snack_box = SnackBox()
